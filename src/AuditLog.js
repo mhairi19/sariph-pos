@@ -5,7 +5,12 @@ function AuditLog({ voidLog, cancelLog }) {
   const allLogs = [
     ...voidLog.map((v) => ({
       ...v,
-      _type: v.type === "post_void" ? "Post-Void" : "Item Void",
+      _type:
+        v.type === "post_void"
+          ? "Post-Void"
+          : v.type === "reprint"
+          ? "Reprint"
+          : "Item Void",
     })),
     ...cancelLog.map((c) => ({
       ...c,
@@ -15,7 +20,8 @@ function AuditLog({ voidLog, cancelLog }) {
 
   function getColor(type) {
     if (type === "Cancel Sale") return "#f59e0b";
-    if (type === "Item Void") return "#3b82f6";
+    if (type === "Item Void")   return "#3b82f6";
+    if (type === "Reprint")     return "#a855f7";
     return "#ef4444";
   }
 
@@ -25,11 +31,11 @@ function AuditLog({ voidLog, cancelLog }) {
         AUDIT LOG
       </h2>
       <p style={{ color: "#64748b", fontSize: 13, margin: "0 0 20px" }}>
-        Complete record of cancellations, item voids, and post-void approvals.
+        Complete record of cancellations, item voids, post-void approvals, and reprints.
       </p>
 
       {/* Summary badges */}
-      <div style={{ display: "flex", gap: 12, marginBottom: 24 }}>
+      <div style={{ display: "flex", gap: 12, marginBottom: 24, flexWrap: "wrap" }}>
         {[
           {
             label: "Cancel Sales",
@@ -45,6 +51,11 @@ function AuditLog({ voidLog, cancelLog }) {
             label: "Post-Voids",
             count: voidLog.filter((v) => v.type === "post_void").length,
             color: "#ef4444",
+          },
+          {
+            label: "Reprints",
+            count: voidLog.filter((v) => v.type === "reprint").length,
+            color: "#a855f7",
           },
         ].map((s) => (
           <div
@@ -134,6 +145,13 @@ function AuditLog({ voidLog, cancelLog }) {
                     Reason:{" "}
                     <span style={{ color: "#f1f5f9" }}>{a.reason}</span> &bull; Approved by:{" "}
                     <strong style={{ color: "#ef4444" }}>{a.approvedBy}</strong>
+                  </div>
+                )}
+
+                {a._type === "Reprint" && (
+                  <div style={{ fontSize: 13, color: "#94a3b8" }}>
+                    Cashier: <strong style={{ color: "#f1f5f9" }}>{a.cashier}</strong> &bull;
+                    Receipt: <strong style={{ color: "#a855f7" }}>{a.receiptNo}</strong>
                   </div>
                 )}
               </div>

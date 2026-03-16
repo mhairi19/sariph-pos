@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { INITIAL_PRODUCTS, INITIAL_USERS, generateReceiptNo } from "./constants";
+import { printReceipt } from "./printReceipt";
 
 import LoginPage from "./LoginPage";
 import Sidebar from "./Sidebar";
@@ -178,13 +179,28 @@ function App() {
     setCashReceived("");
     setShowPayModal(false);
     setShowReceipt(true);
+    printReceipt(txn);
     notify("Payment successful!");
   }
 
+  // Single reprint function used by BOTH the POSPage button and the Receipt modal.
+  // Marks reprinted, opens receipt modal, prints, and logs to audit — every time.
   function reprintReceipt() {
     if (!lastReceipt) { notify("No recent transaction.", "error"); return; }
-    setLastReceipt(function(t) { return Object.assign({}, t, { reprinted: true }); });
+    var reprinted = Object.assign({}, lastReceipt, { reprinted: true });
+    setLastReceipt(reprinted);
     setShowReceipt(true);
+    printReceipt(reprinted);
+    setVoidLog(function(prev) {
+      return prev.concat([{
+        id: Date.now(),
+        type: "reprint",
+        receiptNo: reprinted.receiptNo,
+        cashier: currentUser.name,
+        time: new Date().toLocaleString(),
+      }]);
+    });
+    notify("Receipt reprinted and logged.");
   }
 
   function initiatePostVoid(txn) {
@@ -344,10 +360,7 @@ function App() {
     showReceipt && lastReceipt ? React.createElement(Receipt, {
       txn: lastReceipt,
       onClose: function() { setShowReceipt(false); },
-      onReprint: function() {
-        setLastReceipt(function(t) { return Object.assign({}, t, { reprinted: true }); });
-        notify("Receipt marked as REPRINT.");
-      },
+      onReprint: reprintReceipt, // ← was an inline function before, now uses reprintReceipt()
     }) : null,
 
     showDiscountModal ? React.createElement(DiscountModal, {
