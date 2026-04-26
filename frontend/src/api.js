@@ -1,11 +1,10 @@
-import axios from "axios";
+﻿import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:8000/api",
+  baseURL: "https://sariph-pos-main-74qo8b.free.laravel.cloud/api",
   headers: { "Content-Type": "application/json" },
 });
 
-// Attach token to every request automatically
 api.interceptors.request.use(function(config) {
   var token = localStorage.getItem("token");
   if (token) config.headers.Authorization = "Bearer " + token;
